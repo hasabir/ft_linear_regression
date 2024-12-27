@@ -1,64 +1,81 @@
-import pandas
+import pandas as pd
 
+def cost_function(data: pd.DataFrame, theta0: float, theta1: float) -> float:
+    m = data.shape[0]
+    total_cost = 0.0
+    for row in data.values:
+        x = float(row[0])
+        y = float(row[1])
+        total_cost += ((theta1 * x + theta0) - y) ** 2
+    return total_cost / (2 * m)
 
-def cost_function(data: pandas.DataFrame, theta0, theta1):
-	m = data.shape[0]
-	sum : float = 0.0
-	for row in data.values:
-		x = float(row[0])
-		y = float(row[1])
-		sum += ((theta1 * x + theta0) - y)**2
-	return 1/(2 * m) * sum
+def compute_gradient(data: pd.DataFrame, theta0: float, theta1: float):
+    m = data.shape[0]
+    sum_theta0 = 0.0
+    sum_theta1 = 0.0
+    for row in data.values:
+        x = float(row[0])
+        y = float(row[1])
+        error = (theta1 * x + theta0) - y
+        sum_theta0 += error
+        sum_theta1 += error * x
+    dj_dtheta0 = sum_theta0 / m
+    dj_dtheta1 = sum_theta1 / m
+    return dj_dtheta0, dj_dtheta1
 
+def gradient_descent(data: pd.DataFrame, theta0: float, theta1: float, learning_rate: float, iterations: int = 300):
+    best_theta0 = theta0
+    best_theta1 = theta1
+    lowest_cost = float('inf')
 
-def compute_gradient(data: pandas.DataFrame, theta0, theta1):
-	m = data.shape[0]
-	sum_theta1 = 0
-	sum_theta0 = 0
-	for row in data.values:
-		x = float(row[0])
-		y = float(row[1])
-		sum_theta0 += ((theta1 * x + theta0) - y) 
-		sum_theta1 += ((theta1 * x + theta0) - y) * x
-	dj_dtheta0 = sum_theta0 / m
-	dj_dtheta1 = sum_theta1 / m
-	return dj_dtheta0, dj_dtheta1
+    for _ in range(iterations):
+        dj_dtheta0, dj_dtheta1 = compute_gradient(data, theta0, theta1)
+        theta0 -= learning_rate * dj_dtheta0
+        theta1 -= learning_rate * dj_dtheta1
 
+        cost_value = cost_function(data, theta0, theta1)
+        if cost_value < lowest_cost:
+            lowest_cost = cost_value
+            best_theta0 = theta0
+            best_theta1 = theta1
 
-def gradien_descent(data: pandas.DataFrame, theta0, theta1, learning_rate):
+    return best_theta0, best_theta1
 
-	stock_theta0 = theta0
-	stock_theta1 = theta1
-	stock_cost_value = float('inf')
+def normalize_data(data: pd.DataFrame):
+    feature_mean = data['km'].mean()
+    feature_std = data['km'].std()
+    label_mean = data['price'].mean()
+    label_std = data['price'].std()
 
-	for i in range (0, 20):
-		dj_dtheta0, dj_dtheta1 = compute_gradient(data, theta0, theta1)
-		tmp_theta0  = theta0 - learning_rate * dj_dtheta0
-		tmp_theta1 = theta1 - learning_rate * dj_dtheta1
-		theta0 = tmp_theta0
-		theta1 = tmp_theta1
-		cost_value = cost_function(data, tmp_theta0, tmp_theta1)
-		if cost_value < stock_cost_value:
-			stock_cost_value = cost_value
-			stock_theta0 = theta0
-			stock_theta1 = theta1
-	return stock_theta0, stock_theta1
+    data['km'] = (data['km'] - feature_mean) / feature_std
+    data['price'] = (data['price'] - label_mean) / label_std
 
+    return data, feature_mean, feature_std, label_mean, label_std
+
+def denormalize_theta(theta0, theta1, feature_mean, feature_std, label_mean, label_std):
+    theta1_original = theta1 * (label_std / feature_std)
+    theta0_original = label_mean + label_std * theta0 - theta1_original * feature_mean
+    return theta0_original, theta1_original
 
 def main():
-	try:
-		theta0 = 0
-		theta1 = 0
-		data = pandas.read_csv('data.csv')
-		theta0, theta1 = gradien_descent(data, theta0, theta1, 0.0000001)
-		with open("model_parameters", 'w') as file:
-			file.write(f"{theta0} {theta1}")
-		
-	except FileNotFoundError as err:
-		print("Error:", err)
-		return
+    try:
+        theta0 = 0.0
+        theta1 = 0.0
+        data = pd.read_csv('data.csv')
 
+        data, feature_mean, feature_std, label_mean, label_std = normalize_data(data)
 
+        learning_rate = 0.01
+        theta0, theta1 = gradient_descent(data, theta0, theta1, learning_rate)
+
+        theta0, theta1 = denormalize_theta(theta0, theta1, feature_mean, feature_std, label_mean, label_std)
+
+        with open("model_parameters", 'w') as file:
+            file.write(f"{theta0} {theta1}")
+
+    except FileNotFoundError as err:
+        print("Error:", err)
+        return
 
 if __name__ == "__main__":
-	main()
+    main()
