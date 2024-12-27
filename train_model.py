@@ -1,13 +1,13 @@
+import numpy as np
 import pandas as pd
 
 def cost_function(data: pd.DataFrame, theta0: float, theta1: float) -> float:
     m = data.shape[0]
-    total_cost = 0.0
-    for row in data.values:
-        x = float(row[0])
-        y = float(row[1])
-        total_cost += ((theta1 * x + theta0) - y) ** 2
-    return total_cost / (2 * m)
+    x = data['km'].values
+    y = data['price'].values
+    predection = theta1 * x + theta0
+    
+    return sum((predection - y) ** 2) / (2 * m)
 
 def compute_gradient(data: pd.DataFrame, theta0: float, theta1: float):
     m = data.shape[0]
@@ -23,7 +23,7 @@ def compute_gradient(data: pd.DataFrame, theta0: float, theta1: float):
     dj_dtheta1 = sum_theta1 / m
     return dj_dtheta0, dj_dtheta1
 
-def gradient_descent(data: pd.DataFrame, theta0: float, theta1: float, learning_rate: float, iterations: int = 300):
+def gradient_descent(data: pd.DataFrame, theta0: float, theta1: float, learning_rate: float, iterations: int = 1*10**4):
     best_theta0 = theta0
     best_theta1 = theta1
     lowest_cost = float('inf')
@@ -64,8 +64,7 @@ def main():
         data = pd.read_csv('data.csv')
 
         data, feature_mean, feature_std, label_mean, label_std = normalize_data(data)
-
-        learning_rate = 0.01
+        learning_rate = 0.001
         theta0, theta1 = gradient_descent(data, theta0, theta1, learning_rate)
 
         theta0, theta1 = denormalize_theta(theta0, theta1, feature_mean, feature_std, label_mean, label_std)

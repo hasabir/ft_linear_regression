@@ -1,4 +1,7 @@
 
+import numpy as np
+
+
 def main():
 	with open("model_parameters", 'r') as file:
 		model_parameters = file.read()
@@ -11,7 +14,9 @@ def main():
 	while True:
 		try:
 			mileage = input("Enter the mileage of the car: ")
-			print("the price of the car is:", theta0 + theta1 * float(mileage))
+			predection = theta0 + theta1 * float(mileage)
+			postprocessed_predection = np.clip(predection, 1*10**3, 1*10**6)
+			print("the price of the car is:", postprocessed_predection)
 		except KeyboardInterrupt:
 			print("\nexiting ...")
 			break
