@@ -97,3 +97,15 @@
         4. **Inspect the data:**
             - If features vary in range or units, consider normalization.
             - If features need centering around zero with equal variance, standardize.
+    ### Postprocessing predictions 
+
+    Postprocessing predictions is a technique to refine or adjust the output of your model after it has made a prediction. In your case, this involves ensuring the predicted car prices are realistic and within acceptable limits. Here’s a deeper dive into the concept and how it applies to your situation:
+    - **Why Postprocess Predictions?**
+        - *Prevent Unrealistic Values*:
+            Linear regression can produce predictions outside the logical range (e.g., negative prices), especially for inputs outside the training data range.
+        - *Ensure Domain-Specific Constraints*:
+            In real-world scenarios, car prices are non-negative and usually fall within a specific range based on market conditions.
+        - *Handle Outliers or Extreme Cases*:
+            Inputs significantly larger or smaller than the training data range can lead to unreliable predictions. Postprocessing can mitigate this.
+            
+
